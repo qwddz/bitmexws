@@ -2,7 +2,6 @@ package consumer
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/qwddz/bitmexws/internal/config"
 	"github.com/qwddz/bitmexws/pkg/bitmex"
 	"log"
@@ -21,7 +20,7 @@ func NewConsumer() *Consumer {
 	}
 }
 
-func (cns *Consumer) ListenReceiver(ctx context.Context) <-chan bitmex.ReceiveMessage {
+func (cns *Consumer) ListenReceiver(ctx context.Context) <-chan []byte {
 	cns.bmWS.Connect(ctx, cns.config.WSBitmex.URL)
 
 	if err := cns.bmWS.Subscribe(bitmex.TypeInstrument); err != nil {
@@ -47,7 +46,10 @@ func (cns *Consumer) ListenReceiver(ctx context.Context) <-chan bitmex.ReceiveMe
 					err := cns.bmWS.ReadMessage(receiver)
 
 					if err != nil {
+						listen = false
+
 						log.Printf("receive message error: %s", err.Error())
+						break
 					}
 				}
 			}
@@ -56,45 +58,7 @@ func (cns *Consumer) ListenReceiver(ctx context.Context) <-chan bitmex.ReceiveMe
 		close(receiver)
 	}()
 
-	upgrader := make(chan bitmex.ReceiveMessage)
-
-	go func() {
-		var listen = true
-
-		for listen {
-			select {
-			case <-ctx.Done():
-				{
-					listen = false
-
-					break
-				}
-			case msg, closed := <-receiver:
-				{
-					if closed == false {
-						listen = false
-
-						break
-					}
-
-					var message bitmex.ReceiveMessage
-					if err := json.Unmarshal(msg, &message); err != nil {
-						log.Printf("reading message error: %s", err.Error())
-					}
-
-					if message.Action != bitmex.ActionUpdate {
-						continue
-					}
-
-					upgrader <- message
-				}
-			}
-		}
-
-		close(upgrader)
-	}()
-
-	return upgrader
+	return receiver
 }
 
 func (cns *Consumer) Shutdown() error {

@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/joho/godotenv"
+	"github.com/qwddz/bitmexws/internal/client"
 	"github.com/qwddz/bitmexws/internal/consumer"
 	"log"
 	"os"
@@ -18,11 +18,11 @@ func init() {
 }
 
 func main() {
-	ctx := context.Background()
-
-	ctxWithCancel, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
 
 	app := consumer.NewConsumer()
+
+	receiver := app.ListenReceiver(ctx)
 
 	defer func() {
 		cancel()
@@ -32,26 +32,9 @@ func main() {
 		}
 	}()
 
-	receiver := app.ListenReceiver(ctxWithCancel)
-
 	go func() {
-		var listen = true
-
-		for listen {
-			select {
-			case <-ctxWithCancel.Done():
-				{
-					listen = false
-				}
-			case msg, closed := <-receiver:
-				{
-					if closed == false {
-						listen = false
-					}
-
-					fmt.Println(msg.Data)
-				}
-			}
+		if err := client.NewClient().ServeHTTP(receiver); err != nil {
+			log.Fatal(err)
 		}
 	}()
 
