@@ -24,37 +24,30 @@ func NewClient() *Client {
 	}
 }
 
-func (cl *Client) ServeHTTP(receiver <-chan []byte) error {
-	cl.configureWS()
-	cl.configureReceiverChan(receiver)
-	cl.configureHandlers()
-
-	cl.configureRouter()
+func (cl *Client) ServeTCP(receiver <-chan []byte) error {
+	cl.setWSUpgrader()
+	cl.setReceiverChan(receiver)
+	cl.setRouter()
 
 	return cl.router.Run(cl.config.AppConfig.BindAddr)
 }
 
-func (cl *Client) configureRouter() {
-	v1 := cl.router.Group("/")
-	v1.GET("/ws", cl.handler.Handle())
+func (cl *Client) setRouter() {
+	cl.router.GET("/ws", NewHandler(cl.ws, cl.receiver).Handle())
 }
 
-func (cl *Client) configureWS() {
-	var upgrader = websocket.Upgrader{}
+func (cl *Client) setWSUpgrader() {
+	var u = websocket.Upgrader{}
 
 	if cl.config.AppConfig.Debug {
-		upgrader.CheckOrigin = func(r *http.Request) bool {
+		u.CheckOrigin = func(r *http.Request) bool {
 			return true
 		}
 	}
 
-	cl.ws = &upgrader
+	cl.ws = &u
 }
 
-func (cl *Client) configureReceiverChan(receiver <-chan []byte) {
+func (cl *Client) setReceiverChan(receiver <-chan []byte) {
 	cl.receiver = receiver
-}
-
-func (cl *Client) configureHandlers() {
-	cl.handler = NewHandler(cl.ws, cl.receiver)
 }

@@ -2,20 +2,6 @@ package bitmex
 
 import "time"
 
-type SubscriptionType string
-
-const (
-	TypeInstrument SubscriptionType = "instrument"
-)
-
-type SubscriptionAction string
-
-const (
-	ActionSubscribe   SubscriptionAction = "subscribe"
-	ActionUnsubscribe SubscriptionAction = "unsubscribe"
-	ActionUpdate      SubscriptionAction = "update"
-)
-
 type SubscriptionMessage struct {
 	Action SubscriptionAction `json:"op"`
 	Args   []SubscriptionType `json:"args"`

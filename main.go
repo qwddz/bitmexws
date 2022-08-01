@@ -33,13 +33,13 @@ func main() {
 	}()
 
 	go func() {
-		if err := client.NewClient().ServeHTTP(receiver); err != nil {
+		if err := client.NewClient().ServeTCP(receiver); err != nil {
 			log.Fatal(err)
 		}
 	}()
 
 	quit := make(chan os.Signal)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
 
 	<-quit
 }

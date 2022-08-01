@@ -1,8 +1,11 @@
 package client
 
 import (
+	"encoding/json"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/qwddz/bitmexws/pkg/bitmex"
 	"log"
 )
 
@@ -31,15 +34,26 @@ func (h *Handler) Handle() gin.HandlerFunc {
 			}
 		}()
 
-		closedWS := make(chan int)
+		exit := make(chan int)
+
+		var request bitmex.Request
+		var subscribed = bitmex.ActionUnsubscribe
 
 		go func() {
 			for {
-				if _, _, err := ws.ReadMessage(); err != nil {
-					closedWS <- 1
+				_, msg, err := ws.ReadMessage()
+
+				if err != nil {
+					exit <- 1
 
 					break
 				}
+
+				if err := json.Unmarshal(msg, &request); err != nil {
+					log.Printf("receive user message error: %s", err)
+				}
+
+				subscribed = request.Action
 			}
 		}()
 
@@ -53,7 +67,7 @@ func (h *Handler) Handle() gin.HandlerFunc {
 
 					break
 				}
-			case <-closedWS:
+			case <-exit:
 				{
 					listen = false
 
@@ -67,19 +81,56 @@ func (h *Handler) Handle() gin.HandlerFunc {
 						break
 					}
 
-					pm, err := websocket.NewPreparedMessage(websocket.TextMessage, msg)
+					message, err := h.formatMessage(msg)
 					if err != nil {
-						listen = false
-
-						break
+						continue
 					}
 
-					if err := ws.WritePreparedMessage(pm); err != nil {
+					if subscribed != bitmex.ActionSubscribe || h.symbolFiltered(request.Symbols, message.Symbol) == false {
+						continue
+					}
+
+					if err := ws.WriteJSON(message); err != nil {
 						listen = false
+
 						break
 					}
 				}
 			}
 		}
 	}
+}
+
+func (h *Handler) formatMessage(jsonMsg []byte) (*bitmex.Response, error) {
+	var msg bitmex.ReceiveMessage
+
+	if err := json.Unmarshal(jsonMsg, &msg); err != nil {
+		return nil, err
+	}
+
+	if msg.Action != bitmex.ActionUpdate {
+		return nil, errors.New("message is not supported")
+	}
+
+	data := msg.Data[0]
+
+	return &bitmex.Response{
+		Symbol:    data.Symbol,
+		Price:     data.MarkPrice,
+		Timestamp: data.Timestamp,
+	}, nil
+}
+
+func (h *Handler) symbolFiltered(request []string, currentSymbol string) bool {
+	if len(request) == 0 {
+		return true
+	}
+
+	for _, rs := range request {
+		if rs == currentSymbol {
+			return true
+		}
+	}
+
+	return false
 }
