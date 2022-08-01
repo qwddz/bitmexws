@@ -31,7 +31,7 @@ func (cl *Client) ServeHTTP(receiver <-chan []byte) error {
 
 	cl.configureRouter()
 
-	return cl.router.Run("0.0.0.0:80")
+	return cl.router.Run(cl.config.AppConfig.BindAddr)
 }
 
 func (cl *Client) configureRouter() {
@@ -40,11 +40,15 @@ func (cl *Client) configureRouter() {
 }
 
 func (cl *Client) configureWS() {
-	cl.ws = &websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool {
+	var upgrader = websocket.Upgrader{}
+
+	if cl.config.AppConfig.Debug {
+		upgrader.CheckOrigin = func(r *http.Request) bool {
 			return true
-		},
+		}
 	}
+
+	cl.ws = &upgrader
 }
 
 func (cl *Client) configureReceiverChan(receiver <-chan []byte) {
