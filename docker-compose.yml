@@ -1,0 +1,16 @@
+version: '2.4'
+services:
+  app:
+    container_name: app
+    build: .
+    expose:
+      - 80
+    ports:
+      - "80:80"
+    environment:
+      APP_DEBUG: "true"
+      APP_BIND_ADDR: "0.0.0.0:80"
+      BITMEX_WS_URL: "wss://testnet.bitmex.com/realtime"
+    restart: on-failure
+    volumes:
+      - ./.env:/app/.env

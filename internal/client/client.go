@@ -13,8 +13,6 @@ type Client struct {
 	ws     *websocket.Upgrader
 
 	receiver <-chan []byte
-
-	handler *Handler
 }
 
 func NewClient() *Client {

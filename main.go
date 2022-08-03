@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"github.com/joho/godotenv"
 	"github.com/qwddz/bitmexws/internal/client"
 	"github.com/qwddz/bitmexws/internal/consumer"
 	"log"
@@ -10,12 +9,6 @@ import (
 	"os/signal"
 	"syscall"
 )
-
-func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("no dot env file")
-	}
-}
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())

@@ -1,5 +1,11 @@
-.PHONY: build
-build:
-	go build -v main.go
+SHELL := /bin/bash
+ALL: up
 
-.DEFAULT_GOAL := build
+build:
+	@docker-compose build
+
+up:
+	@docker-compose up -d
+
+down:
+	@docker-compose down
