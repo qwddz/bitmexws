@@ -12,5 +12,3 @@ services:
       APP_BIND_ADDR: "0.0.0.0:80"
       BITMEX_WS_URL: "wss://testnet.bitmex.com/realtime"
     restart: on-failure
-    volumes:
-      - ./.env:/app/.env

@@ -2,6 +2,7 @@ SHELL := /bin/bash
 ALL: up
 
 build:
+	@docker-compose down
 	@docker-compose build
 
 up:
