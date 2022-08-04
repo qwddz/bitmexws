@@ -37,16 +37,20 @@ func (h *Handler) Handle() gin.HandlerFunc {
 		exit := make(chan int)
 
 		var request bitmex.Request
-		var subscribed = bitmex.ActionUnsubscribe
+
+		subscribed := bitmex.ActionUnsubscribe
 
 		go func() {
 			for {
 				_, msg, err := ws.ReadMessage()
-
 				if err != nil {
 					exit <- 1
 
 					break
+				}
+
+				if len(msg) == 0 {
+					continue
 				}
 
 				if err := json.Unmarshal(msg, &request); err != nil {

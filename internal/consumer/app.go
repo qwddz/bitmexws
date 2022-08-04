@@ -20,14 +20,12 @@ func NewConsumer() *Consumer {
 	}
 }
 
-func (cns *Consumer) ListenReceiver(ctx context.Context) <-chan []byte {
+func (cns *Consumer) ListenReceiver(ctx context.Context, receiver chan []byte) {
 	cns.bmWS.Connect(ctx, cns.config.WSBitmex.URL)
 
 	if err := cns.bmWS.Subscribe(bitmex.TypeInstrument); err != nil {
 		log.Fatal(err)
 	}
-
-	receiver := make(chan []byte)
 
 	go func() {
 		var listen = true
@@ -54,11 +52,7 @@ func (cns *Consumer) ListenReceiver(ctx context.Context) <-chan []byte {
 				}
 			}
 		}
-
-		close(receiver)
 	}()
-
-	return receiver
 }
 
 func (cns *Consumer) Shutdown() error {

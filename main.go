@@ -15,7 +15,9 @@ func main() {
 
 	app := consumer.NewConsumer()
 
-	receiver := app.ListenReceiver(ctx)
+	receiver := make(chan []byte)
+
+	app.ListenReceiver(ctx, receiver)
 
 	defer func() {
 		cancel()
@@ -23,6 +25,8 @@ func main() {
 		if err := app.Shutdown(); err != nil {
 			log.Fatal(err)
 		}
+
+		close(receiver)
 	}()
 
 	go func() {
