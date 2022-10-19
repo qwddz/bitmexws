@@ -3,7 +3,6 @@ package bitmex
 import (
 	"context"
 	"github.com/gorilla/websocket"
-	"log"
 )
 
 type WSClient struct {
@@ -14,19 +13,19 @@ func NewWSClient() *WSClient {
 	return &WSClient{}
 }
 
-func (wsc *WSClient) Connect(ctx context.Context, url string) {
+func (wsc *WSClient) Connect(ctx context.Context, url string) error {
 	if wsc.conn != nil {
-		return
+		return nil
 	}
 
 	ws, _, err := websocket.DefaultDialer.DialContext(ctx, url, nil)
 	if err != nil {
-		log.Printf("cannot connect to websocket: %s with %s", err.Error(), url)
-
-		return
+		return err
 	}
 
 	wsc.conn = ws
+
+	return nil
 }
 
 func (wsc *WSClient) ReadMessage(receiver chan []byte) error {

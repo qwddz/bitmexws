@@ -6,7 +6,7 @@ import (
 )
 
 type Upgrader interface {
-	Connect(ctx context.Context, url string)
+	Connect(ctx context.Context, url string) error
 	ReadMessage(receiver chan []byte) error
 	Subscribe(topic bitmex.SubscriptionType) error
 	Unsubscribe(topic bitmex.SubscriptionType) error

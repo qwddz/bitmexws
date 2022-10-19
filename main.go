@@ -12,17 +12,20 @@ import (
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
-
-	app := consumer.NewConsumer()
-
 	receiver := make(chan []byte)
 
-	app.ListenReceiver(ctx, receiver)
+	cs := consumer.NewConsumer()
+
+	if err := cs.ListenReceiver(ctx, receiver); err != nil {
+		close(receiver)
+
+		log.Fatal(err)
+	}
 
 	defer func() {
 		cancel()
 
-		if err := app.Shutdown(); err != nil {
+		if err := cs.Shutdown(); err != nil {
 			log.Fatal(err)
 		}
 
@@ -31,6 +34,8 @@ func main() {
 
 	go func() {
 		if err := client.NewClient().ServeTCP(receiver); err != nil {
+			close(receiver)
+
 			log.Fatal(err)
 		}
 	}()

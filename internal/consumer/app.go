@@ -4,27 +4,28 @@ import (
 	"context"
 	"github.com/qwddz/bitmexws/internal/config"
 	"github.com/qwddz/bitmexws/pkg/bitmex"
-	"log"
 )
 
 type Consumer struct {
 	config *config.Config
 
-	bmWS Upgrader
+	wsc Upgrader
 }
 
 func NewConsumer() *Consumer {
 	return &Consumer{
 		config: config.NewConfig(),
-		bmWS:   bitmex.NewWSClient(),
+		wsc:    bitmex.NewWSClient(),
 	}
 }
 
-func (cns *Consumer) ListenReceiver(ctx context.Context, receiver chan []byte) {
-	cns.bmWS.Connect(ctx, cns.config.WSBitmex.URL)
+func (cns *Consumer) ListenReceiver(ctx context.Context, receiver chan []byte) error {
+	if err := cns.wsc.Connect(ctx, cns.config.WSBitmex.URL); err != nil {
+		return err
+	}
 
-	if err := cns.bmWS.Subscribe(bitmex.TypeInstrument); err != nil {
-		log.Fatal(err)
+	if err := cns.wsc.Subscribe(bitmex.TypeInstrument); err != nil {
+		return err
 	}
 
 	go func() {
@@ -36,35 +37,31 @@ func (cns *Consumer) ListenReceiver(ctx context.Context, receiver chan []byte) {
 				{
 					listen = false
 
-					log.Println("receive message error: existing from app")
 					break
 				}
 			default:
 				{
-					err := cns.bmWS.ReadMessage(receiver)
+					err := cns.wsc.ReadMessage(receiver)
 
 					if err != nil {
 						listen = false
 
-						log.Printf("receive message error: %s", err.Error())
 						break
 					}
 				}
 			}
 		}
 	}()
+
+	return nil
 }
 
 func (cns *Consumer) Shutdown() error {
-	log.Println("unsubscribing from binmex...")
-
-	if err := cns.bmWS.Unsubscribe(bitmex.TypeInstrument); err != nil {
+	if err := cns.wsc.Unsubscribe(bitmex.TypeInstrument); err != nil {
 		return err
 	}
 
-	log.Println("close connection from binmex...")
-
-	if err := cns.bmWS.Close(); err != nil {
+	if err := cns.wsc.Close(); err != nil {
 		return err
 	}
 
