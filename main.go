@@ -17,13 +17,12 @@ func main() {
 	cs := consumer.NewConsumer()
 
 	if err := cs.ListenReceiver(ctx, receiver); err != nil {
-		close(receiver)
-
 		log.Fatal(err)
 	}
 
 	defer func() {
 		cancel()
+		close(receiver)
 
 		if err := cs.Shutdown(); err != nil {
 			log.Fatal(err)
@@ -32,8 +31,6 @@ func main() {
 
 	go func() {
 		if err := client.NewClient().ServeTCP(receiver); err != nil {
-			close(receiver)
-
 			log.Fatal(err)
 		}
 	}()
