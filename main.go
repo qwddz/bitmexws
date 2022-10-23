@@ -28,8 +28,6 @@ func main() {
 		if err := cs.Shutdown(); err != nil {
 			log.Fatal(err)
 		}
-
-		close(receiver)
 	}()
 
 	go func() {
