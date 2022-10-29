@@ -8,6 +8,7 @@ services:
     ports:
       - "80:80"
     environment:
+      GIN_MODE: "release"
       APP_DEBUG: "true"
       APP_BIND_ADDR: "0.0.0.0:80"
       BITMEX_WS_URL: "wss://testnet.bitmex.com/realtime"

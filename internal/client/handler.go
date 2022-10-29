@@ -30,7 +30,7 @@ func (h *Handler) Handle() gin.HandlerFunc {
 
 		defer func() {
 			if err := ws.Close(); err != nil {
-				log.Printf("ws close error: %s", err.Error())
+				log.Printf("user ws channel close error: %s", err.Error())
 			}
 		}()
 
