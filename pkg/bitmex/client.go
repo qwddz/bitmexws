@@ -28,16 +28,10 @@ func (wsc *WSClient) Connect(ctx context.Context, url string) error {
 	return nil
 }
 
-func (wsc *WSClient) ReadMessage(receiver chan []byte) error {
+func (wsc *WSClient) ReadMessage() ([]byte, error) {
 	_, msg, err := wsc.conn.ReadMessage()
 
-	if err != nil {
-		return err
-	}
-
-	receiver <- msg
-
-	return nil
+	return msg, err
 }
 
 func (wsc *WSClient) Subscribe(topic SubscriptionType) error {

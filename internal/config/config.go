@@ -5,6 +5,7 @@ import "os"
 type Config struct {
 	AppConfig App
 	WSBitmex  Bitmex
+	DB        DB
 }
 
 func NewConfig() *Config {
@@ -15,6 +16,18 @@ func NewConfig() *Config {
 		},
 		WSBitmex: Bitmex{
 			URL: getEnv("BITMEX_WS_URL", ""),
+		},
+		DB: DB{
+			Host: Host{
+				Master: getEnv("DB_HOST", "localhost"),
+				Slave: []string{
+					getEnv("DB_SLAVE_HOST_1", "localhost"),
+					getEnv("DB_SLAVE_HOST_2", "localhost"),
+				},
+			},
+			Name:     getEnv("DB_NAME", "homestead"),
+			User:     getEnv("DB_USER", "homestead"),
+			Password: getEnv("DB_PASSWORD", "homestead"),
 		},
 	}
 }

@@ -12,4 +12,31 @@ services:
       APP_DEBUG: "true"
       APP_BIND_ADDR: "0.0.0.0:80"
       BITMEX_WS_URL: "wss://testnet.bitmex.com/realtime"
+      DB_HOST: "mysql"
+      DB_SLAVE_HOST_1: "mysql"
+      DB_SLAVE_HOST_2: "mysql"
+      DB_NAME: "app"
+      DB_USER: "admin"
+      DB_PASSWORD: "kd98qw11"
     restart: on-failure
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    volumes:
+      - mysql_storage:/var/lib/mysql
+      - ./docker/mysql/config/mysqld.cnf:/etc/mysql/conf.d/mysqld.cnf
+    environment:
+      MYSQL_DATABASE: "app"
+      MYSQL_USER: "admin"
+      MYSQL_PASSWORD: "kd98qw11"
+      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - "3306:3306"
+
+volumes:
+  mysql_storage:

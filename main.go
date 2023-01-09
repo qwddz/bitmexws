@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/qwddz/bitmexws/internal/client"
 	"github.com/qwddz/bitmexws/internal/consumer"
+	"github.com/qwddz/bitmexws/internal/message"
 	"log"
 	"os"
 	"os/signal"
@@ -12,17 +13,20 @@ import (
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
-	receiver := make(chan []byte)
+	receiver := make(chan message.WSMessage)
 
-	cs := consumer.NewConsumer()
+	cs, err := consumer.NewConsumer()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	if err := cs.ListenReceiver(ctx, receiver); err != nil {
 		log.Fatalln(err)
 	}
 
 	defer func() {
-		cancel()
 		close(receiver)
+		cancel()
 
 		if err := cs.Shutdown(); err != nil {
 			log.Fatalln(err)
@@ -30,7 +34,12 @@ func main() {
 	}()
 
 	go func() {
-		if err := client.NewClient().ServeTCP(receiver); err != nil {
+		cl, err := client.NewClient()
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		if err := cl.ServeTCP(receiver); err != nil {
 			log.Fatalln(err)
 		}
 	}()
