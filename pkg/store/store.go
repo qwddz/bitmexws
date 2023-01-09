@@ -4,7 +4,6 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/qwddz/bitmexws/internal/config"
 	"math/rand"
 )
 
@@ -15,22 +14,23 @@ type connectionsPool struct {
 }
 
 type Store struct {
-	config     *config.Config
-	connection *connectionsPool
+	config     Config
+	connection connectionsPool
 }
 
 //New connect to mysql db
-func New(config *config.Config) (*Store, error) {
+func New(config Config) (*Store, error) {
 	store := Store{
 		config: config,
-		connection: &connectionsPool{
+		connection: connectionsPool{
 			master: nil,
 			slave:  nil,
 		},
 	}
 
 	var sconnections []*sqlx.DB
-	for _, slave := range config.DB.Host.Slave {
+
+	for _, slave := range config.Host.Slave {
 		slc, err := store.openConnection(slave)
 		if err != nil {
 			continue
@@ -43,12 +43,14 @@ func New(config *config.Config) (*Store, error) {
 		sconnections = append(sconnections, slc)
 	}
 
-	mc, err := store.openConnection(config.DB.Host.Master)
+	mc, err := store.openConnection(config.Host.Master)
 	if err != nil {
 		return nil, err
 	}
+
 	store.connection.master = mc
 	store.connection.slave = sconnections
+
 	return &store, nil
 }
 
@@ -57,17 +59,20 @@ func (s *Store) Close() error {
 	if err := s.connection.master.Close(); err != nil {
 		return err
 	}
+
 	for _, slave := range s.connection.slave {
 		if err := slave.Close(); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
 // SlaveConnection return opened slave connection or master connection if slave pool is empty
 func (s *Store) SlaveConnection() *sqlx.DB {
 	ls := len(s.connection.slave)
+
 	if ls == 0 {
 		return s.ForceMasterConnection()
 	}
@@ -84,7 +89,8 @@ func (s *Store) ForceMasterConnection() *sqlx.DB {
 
 //connect to host
 func (s *Store) openConnection(host string) (*sqlx.DB, error) {
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true", s.config.DB.User, s.config.DB.Password, host, s.config.DB.Name)
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true", s.config.User, s.config.Password, host, s.config.Name)
+
 	c, err := sqlx.Open("mysql", connectionString)
 	if err != nil {
 		return nil, err

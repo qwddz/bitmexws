@@ -64,7 +64,6 @@ func (cns *Consumer) ListenReceiver(ctx context.Context, receiver chan message.W
 					msg, err := cns.wsc.ReadMessage()
 
 					if err != nil {
-
 						listen = false
 
 						break
@@ -109,7 +108,17 @@ func (cns *Consumer) Shutdown() error {
 }
 
 func (cns *Consumer) configureStore() error {
-	st, err := store.New(cns.config)
+	conf := store.Config{
+		Host: store.Host{
+			Master: cns.config.DB.Host.Master,
+			Slave:  cns.config.DB.Host.Slave,
+		},
+		Name:     cns.config.DB.Name,
+		User:     cns.config.DB.User,
+		Password: cns.config.DB.Password,
+	}
+
+	st, err := store.New(conf)
 	if err != nil {
 		return err
 	}
@@ -123,11 +132,11 @@ func (cns *Consumer) configureStore() error {
 	return nil
 }
 
-func (cns *Consumer) decodeMessage(bMsg []byte) (message.WSMessage, error) {
+func (cns *Consumer) decodeMessage(bmsg []byte) (message.WSMessage, error) {
 	var msg bitmex.ReceiveMessage
 	var resmsg message.WSMessage
 
-	if err := json.Unmarshal(bMsg, &msg); err != nil {
+	if err := json.Unmarshal(bmsg, &msg); err != nil {
 		return resmsg, err
 	}
 

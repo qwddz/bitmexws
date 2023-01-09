@@ -74,7 +74,17 @@ func (cl *Client) setReceiverChan(receiver <-chan message.WSMessage) {
 func (cl *Client) configureStore() error {
 	cl.log.Infoln("setup log: setup client db connection")
 
-	st, err := store.New(cl.config)
+	conf := store.Config{
+		Host: store.Host{
+			Master: cl.config.DB.Host.Master,
+			Slave:  cl.config.DB.Host.Slave,
+		},
+		Name:     cl.config.DB.Name,
+		User:     cl.config.DB.User,
+		Password: cl.config.DB.Password,
+	}
+
+	st, err := store.New(conf)
 	if err != nil {
 		return err
 	}

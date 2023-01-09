@@ -28,7 +28,7 @@ services:
     restart: always
     volumes:
       - mysql_storage:/var/lib/mysql
-      - ./docker/mysql/config/mysqld.cnf:/etc/mysql/conf.d/mysqld.cnf
+      - ./docker/config/mysqld.cnf:/etc/mysql/conf.d/mysqld.cnf
     environment:
       MYSQL_DATABASE: "app"
       MYSQL_USER: "admin"

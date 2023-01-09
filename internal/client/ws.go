@@ -101,13 +101,13 @@ func (h *WS) Handle() gin.HandlerFunc {
 	}
 }
 
-func (h *WS) symbolFiltered(request []string, currentSymbol string) bool {
+func (h *WS) symbolFiltered(request []string, code string) bool {
 	if len(request) == 0 {
 		return true
 	}
 
-	for _, rs := range request {
-		if rs == currentSymbol {
+	for _, rc := range request {
+		if rc == code {
 			return true
 		}
 	}
