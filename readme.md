@@ -4,7 +4,7 @@
 ### You may subscribe to real-time changes on any available table.
 
 Endpoints:
-WS `ws://0.0.0.0/ws` - websocket connection uri
+WS `ws://0.0.0.0:8090/ws` - websocket connection uri
 
 Basic commands:
 
