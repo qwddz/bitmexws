@@ -2,9 +2,8 @@ package main
 
 import (
 	"context"
-	"github.com/qwddz/bitmexws/internal/client"
-	"github.com/qwddz/bitmexws/internal/consumer"
-	"github.com/qwddz/bitmexws/internal/message"
+	"github.com/qwddz/bitmexws/internal/upgrader"
+	"github.com/qwddz/bitmexws/internal/wsclient"
 	"log"
 	"os"
 	"os/signal"
@@ -13,9 +12,9 @@ import (
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
-	receiver := make(chan message.WSMessage)
+	receiver := make(chan wsclient.WSMessage)
 
-	cs, err := consumer.NewConsumer()
+	cs, err := upgrader.New()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -34,12 +33,12 @@ func main() {
 	}()
 
 	go func() {
-		cl, err := client.NewClient()
+		cl, err := wsclient.New()
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		if err := cl.ServeTCP(receiver); err != nil {
+		if err := cl.ServeWS(receiver); err != nil {
 			log.Fatalln(err)
 		}
 	}()

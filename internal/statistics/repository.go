@@ -17,7 +17,7 @@ type StatRepo struct {
 	connection *sqlx.DB
 }
 
-func NewStat(connection *sqlx.DB) *StatRepo {
+func New(connection *sqlx.DB) *StatRepo {
 	return &StatRepo{connection: connection}
 }
 

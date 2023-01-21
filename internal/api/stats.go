@@ -1,15 +1,18 @@
-package client
+package api
 
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/qwddz/bitmexws/internal/statistics"
+	"github.com/qwddz/bitmexws/pkg/logger"
+	"github.com/qwddz/bitmexws/pkg/store"
 	"net/http"
 )
 
 const DefaultLimit = 100
 
 type Stats struct {
-	store *statistics.StatRepo
+	store *store.Store
+	log   logger.Logger
 }
 
 type request struct {
@@ -18,21 +21,23 @@ type request struct {
 	Symbol string `json:"symbol" form:"symbol"`
 }
 
-func NewStatsHandler(stats *statistics.StatRepo) *Stats {
-	return &Stats{store: stats}
+func NewStatsHandler(store *store.Store, log logger.Logger) *Stats {
+	return &Stats{store: store, log: log}
 }
 
 func (h *Stats) Handle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		r := new(request)
 		if err := c.ShouldBind(r); err != nil {
+			h.log.Errorln("statistics:", err.Error())
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"msg": err.Error()})
 
 			return
 		}
 
-		stat, err := h.store.Find(c, r.LastID, h.prepareLimit(r.Limit), r.Symbol)
+		stat, err := statistics.New(h.store.SlaveConnection()).Find(c, r.LastID, h.prepareLimit(r.Limit), r.Symbol)
 		if err != nil {
+			h.log.Errorln("statistics:", err.Error())
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"msg": err.Error()})
 
 			return

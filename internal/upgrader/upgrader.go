@@ -1,4 +1,4 @@
-package consumer
+package upgrader
 
 import (
 	"context"

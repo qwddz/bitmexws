@@ -4,6 +4,7 @@ import "os"
 
 type Config struct {
 	AppConfig App
+	ApiConfig API
 	WSBitmex  Bitmex
 	DB        DB
 }
@@ -13,6 +14,10 @@ func NewConfig() *Config {
 		AppConfig: App{
 			Debug:    getEnv("APP_DEBUG", "false") == "true",
 			BindAddr: getEnv("APP_BIND_ADDR", "0.0.0.0:80"),
+		},
+		ApiConfig: API{
+			Debug:    getEnv("API_DEBUG", "false") == "true",
+			BindAddr: getEnv("API_BIND_ADDR", "0.0.0.0:82"),
 		},
 		WSBitmex: Bitmex{
 			URL: getEnv("BITMEX_WS_URL", ""),

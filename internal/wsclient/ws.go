@@ -1,22 +1,21 @@
-package client
+package wsclient
 
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/qwddz/bitmexws/internal/message"
 	"github.com/qwddz/bitmexws/pkg/bitmex"
 	"github.com/qwddz/bitmexws/pkg/logger"
 )
 
 type WS struct {
-	receiver <-chan message.WSMessage
+	receiver <-chan WSMessage
 	log      logger.Logger
 
 	ws *websocket.Upgrader
 }
 
-func NewWSHandler(ws *websocket.Upgrader, receiver <-chan message.WSMessage, log logger.Logger) *WS {
+func NewWSHandler(ws *websocket.Upgrader, receiver <-chan WSMessage, log logger.Logger) *WS {
 	return &WS{ws: ws, receiver: receiver, log: log}
 }
 

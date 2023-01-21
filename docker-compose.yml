@@ -2,15 +2,19 @@ version: '2.4'
 services:
   app:
     container_name: app
-    build: .
+    build:
+      context: .
+      dockerfile: ./docker/app/Dockerfile
     expose:
-      - 80
+      - 8090
     ports:
-      - "80:80"
+      - "8090:8090"
     environment:
       GIN_MODE: "release"
       APP_DEBUG: "true"
-      APP_BIND_ADDR: "0.0.0.0:80"
+      APP_BIND_ADDR: "0.0.0.0:8090"
+      API_DEBUG: "true"
+      API_BIND_ADDR: "0.0.0.0:80"
       BITMEX_WS_URL: "wss://testnet.bitmex.com/realtime"
       DB_HOST: "mysql"
       DB_SLAVE_HOST_1: "mysql"
@@ -21,6 +25,32 @@ services:
     restart: on-failure
     depends_on:
       - mysql
+
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+    expose:
+      - 80
+    ports:
+      - "80:80"
+    environment:
+      GIN_MODE: "release"
+      APP_DEBUG: "true"
+      APP_BIND_ADDR: "0.0.0.0:8090"
+      API_DEBUG: "true"
+      API_BIND_ADDR: "0.0.0.0:80"
+      BITMEX_WS_URL: "wss://testnet.bitmex.com/realtime"
+      DB_HOST: "mysql"
+      DB_SLAVE_HOST_1: "mysql"
+      DB_SLAVE_HOST_2: "mysql"
+      DB_NAME: "app"
+      DB_USER: "admin"
+      DB_PASSWORD: "kd98qw11"
+    restart: on-failure
+    depends_on:
+      - app
 
   mysql:
     image: mysql:8.0
