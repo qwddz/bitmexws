@@ -19,7 +19,8 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	if err := cs.ListenReceiver(ctx, receiver); err != nil {
+	cl, err := wsclient.New()
+	if err != nil {
 		log.Fatalln(err)
 	}
 
@@ -32,12 +33,15 @@ func main() {
 		}
 	}()
 
-	go func() {
-		cl, err := wsclient.New()
-		if err != nil {
-			log.Fatalln(err)
-		}
+	if err := cs.Connect(ctx); err != nil {
+		log.Fatalln(err)
+	}
 
+	go func() {
+		cs.Listen(ctx, receiver)
+	}()
+
+	go func() {
 		if err := cl.ServeWS(receiver); err != nil {
 			log.Fatalln(err)
 		}

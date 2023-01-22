@@ -23,16 +23,18 @@ func New() (*API, error) {
 		log:    logrus.New(),
 	}
 
-	if err := a.configureStore(); err != nil {
+	if err := a.setStore(); err != nil {
 		return nil, err
 	}
+
+	a.setRouter()
+
+	a.log.Infoln("setup api log: application has been successfully configured")
 
 	return &a, nil
 }
 
 func (a *API) ServeTCP() error {
-	a.setRouter()
-
 	a.log.Infoln("setup api log: application has been successfully started")
 
 	return a.router.Run(a.config.ApiConfig.BindAddr)
@@ -55,7 +57,7 @@ func (a *API) setRouter() {
 	a.router.GET("/statistics", NewStatsHandler(a.store, a.log).Handle())
 }
 
-func (a *API) configureStore() error {
+func (a *API) setStore() error {
 	a.log.Infoln("setup api log: setup client db connection")
 
 	conf := store.Config{

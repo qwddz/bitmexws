@@ -39,7 +39,7 @@ func New() (*Listener, error) {
 	return &c, nil
 }
 
-func (l *Listener) ListenReceiver(ctx context.Context, receiver chan wsclient.WSMessage) error {
+func (l *Listener) Connect(ctx context.Context) error {
 	if err := l.wsc.Connect(ctx, l.config.WSBitmex.URL); err != nil {
 		l.log.Errorln("error when tying to open websocket connection:", err.Error())
 
@@ -52,45 +52,45 @@ func (l *Listener) ListenReceiver(ctx context.Context, receiver chan wsclient.WS
 		return err
 	}
 
+	return nil
+}
+
+func (l *Listener) Listen(ctx context.Context, receiver chan wsclient.WSMessage) {
 	listen := true
 
-	go func() {
-		for listen {
-			select {
-			case <-ctx.Done():
-				{
+	for listen {
+		select {
+		case <-ctx.Done():
+			{
+				listen = false
+
+				break
+			}
+		default:
+			{
+				msg, err := l.wsc.ReadMessage()
+
+				if err != nil {
 					listen = false
 
 					break
 				}
-			default:
-				{
-					msg, err := l.wsc.ReadMessage()
 
-					if err != nil {
-						listen = false
+				decmsg, err := l.decodeMessage(msg)
+				if err != nil {
+					l.log.Errorln("error when trying to decode message:", err.Error())
 
-						break
-					}
-
-					decmsg, err := l.decodeMessage(msg)
-					if err != nil {
-						l.log.Errorln("error when trying to decode message:", err.Error())
-
-						continue
-					}
-
-					if err := l.saveStatistics(ctx, decmsg); err != nil {
-						l.log.Errorln("error when trying to saving statistics data:", err.Error())
-					}
-
-					receiver <- decmsg
+					continue
 				}
+
+				if err := l.saveStatistics(ctx, decmsg); err != nil {
+					l.log.Errorln("error when trying to saving statistics data:", err.Error())
+				}
+
+				receiver <- decmsg
 			}
 		}
-	}()
-
-	return nil
+	}
 }
 
 func (l *Listener) Shutdown() error {
