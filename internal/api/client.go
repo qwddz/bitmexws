@@ -2,7 +2,9 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/qwddz/bitmexws/internal"
 	"github.com/qwddz/bitmexws/internal/config"
+	"github.com/qwddz/bitmexws/internal/statistics"
 	"github.com/qwddz/bitmexws/pkg/logger"
 	"github.com/qwddz/bitmexws/pkg/store"
 	"github.com/sirupsen/logrus"
@@ -14,6 +16,8 @@ type API struct {
 	router *gin.Engine
 	log    logger.Logger
 	store  *store.Store
+
+	statistic internal.Router
 }
 
 func New() (*API, error) {
@@ -27,7 +31,7 @@ func New() (*API, error) {
 		return nil, err
 	}
 
-	a.setRouter()
+	a.setRoutes()
 
 	a.log.Infoln("setup api log: application has been successfully configured")
 
@@ -36,6 +40,11 @@ func New() (*API, error) {
 
 func (a *API) ServeTCP() error {
 	a.log.Infoln("setup api log: application has been successfully started")
+
+	rg := a.router.Group("statistics")
+	{
+		a.statistic.RegisterRouter(rg)
+	}
 
 	return a.router.Run(a.config.ApiConfig.BindAddr)
 }
@@ -51,10 +60,10 @@ func (a *API) Shutdown() error {
 	return nil
 }
 
-func (a *API) setRouter() {
+func (a *API) setRoutes() {
 	a.log.Infoln("setup api log: setup router")
 
-	a.router.GET("/statistics", NewStatsHandler(a.store, a.log).Handle())
+	a.statistic = statistics.NewRouter(a.store, a.log)
 }
 
 func (a *API) setStore() error {

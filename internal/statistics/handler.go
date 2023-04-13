@@ -1,8 +1,7 @@
-package api
+package statistics
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/qwddz/bitmexws/internal/statistics"
 	"github.com/qwddz/bitmexws/pkg/logger"
 	"github.com/qwddz/bitmexws/pkg/store"
 	"net/http"
@@ -21,7 +20,7 @@ type request struct {
 	Symbol string `json:"symbol" form:"symbol"`
 }
 
-func NewStatsHandler(store *store.Store, log logger.Logger) *Stats {
+func newHandler(store *store.Store, log logger.Logger) *Stats {
 	return &Stats{store: store, log: log}
 }
 
@@ -35,7 +34,7 @@ func (h *Stats) Handle() gin.HandlerFunc {
 			return
 		}
 
-		stat, err := statistics.New(h.store.SlaveConnection()).Find(c, r.LastID, h.prepareLimit(r.Limit), r.Symbol)
+		stat, err := NewRepo(h.store.SlaveConnection()).Find(c, r.LastID, h.prepareLimit(r.Limit), r.Symbol)
 		if err != nil {
 			h.log.Errorln("statistics:", err.Error())
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"msg": err.Error()})

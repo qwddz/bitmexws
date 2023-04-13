@@ -154,7 +154,7 @@ func (l *Listener) decodeMessage(bmsg []byte) (wsclient.WSMessage, error) {
 }
 
 func (l *Listener) saveStatistics(ctx context.Context, msg wsclient.WSMessage) error {
-	if err := statistics.New(l.store.ForceMasterConnection()).Save(ctx, msg.Symbol, msg.MarkPrice); err != nil {
+	if err := statistics.NewRepo(l.store.ForceMasterConnection()).Save(ctx, msg.Symbol, msg.MarkPrice); err != nil {
 		return err
 	}
 
